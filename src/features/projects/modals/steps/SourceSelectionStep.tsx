@@ -7,6 +7,7 @@ import { Button } from '@/shared/ui/Button'
 import { DialogDescription, DialogTitle } from '@/shared/ui/Dialog'
 import { Input } from '@/shared/ui/Input'
 import { Label } from '@/shared/ui/Label'
+import { ValidationMessage } from '@/shared/ui/ValidationMessage'
 
 import type { SourceSelectionResult } from '../types'
 
@@ -102,9 +103,13 @@ export function SourceSelectionStep({
             className="border-none px-0 focus-visible:ring-0"
           />
         </div>
-        {!isYoutubeValid && youtubeUrl.trim().length > 0 ? (
-          <p className="text-danger text-sm">올바른 YouTube 링크를 입력하세요.</p>
-        ) : null}
+        <ValidationMessage
+          message={
+            !isYoutubeValid && youtubeUrl.trim().length > 0
+              ? '올바른 YouTube 링크를 입력하세요.'
+              : undefined
+          }
+        />
       </div>
       <div className="text-muted text-center">OR</div>
       <div className="space-y-1">
@@ -129,7 +134,7 @@ export function SourceSelectionStep({
             </div>
           </p>
         ) : null}
-        {fileError ? <p className="text-danger text-sm">{fileError}</p> : null}
+        <ValidationMessage message={fileError ?? undefined} />
       </div>
       {/* )} */}
 

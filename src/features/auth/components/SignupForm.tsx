@@ -11,6 +11,7 @@ import { Button } from '../../../shared/ui/Button'
 import { Checkbox } from '../../../shared/ui/Checkbox'
 import { Input } from '../../../shared/ui/Input'
 import { Label } from '../../../shared/ui/Label'
+import { ValidationMessage } from '../../../shared/ui/ValidationMessage'
 import { useSignupMutation } from '../hooks/useAuthMutations'
 
 const signupSchema = z
@@ -68,27 +69,23 @@ export function SignupForm() {
       <div className="space-y-2">
         <Label htmlFor="userName">사용자이름</Label>
         <Input id="userName" placeholder="2~32자" {...register('userName')} />
-        {errors.userName ? <p className="text-danger text-sm">{errors.userName.message}</p> : null}
+        <ValidationMessage message={errors.userName?.message} />
       </div>
       <div className="space-y-2">
         <Label htmlFor="email">이메일</Label>
         <Input id="email" type="email" {...register('email')} placeholder="name@example.com" />
-        {errors.email ? <p className="text-danger text-sm">{errors.email.message}</p> : null}
+        <ValidationMessage message={errors.email?.message} />
       </div>
       <div className="grid gap-4 md:grid-cols-2">
         <div className="space-y-2">
           <Label htmlFor="password">비밀번호</Label>
           <Input id="password" type="password" {...register('password')} placeholder="8자 이상" />
-          {errors.password ? (
-            <p className="text-danger text-sm">{errors.password.message}</p>
-          ) : null}
+          <ValidationMessage message={errors.password?.message} />
         </div>
         <div className="space-y-2">
           <Label htmlFor="confirmPassword">비밀번호 확인</Label>
           <Input id="confirmPassword" type="password" {...register('confirmPassword')} />
-          {errors.confirmPassword ? (
-            <p className="text-danger text-sm">{errors.confirmPassword.message}</p>
-          ) : null}
+          <ValidationMessage message={errors.confirmPassword?.message} />
         </div>
       </div>
       <div className="border-surface-4 bg-surface-2 flex items-start gap-3 rounded-2xl border p-4">
@@ -106,9 +103,7 @@ export function SignupForm() {
           [필수] 서비스 이용약관 및 개인정보 처리방침에 동의합니다.
         </Label>
       </div>
-      {errors.agreeTerms ? (
-        <p className="text-danger text-sm">{errors.agreeTerms.message}</p>
-      ) : null}
+      <ValidationMessage message={errors.agreeTerms?.message} />
       <div className="grid gap-3">
         <Button type="submit" disabled={signupMutation.isPending} className="w-full">
           {signupMutation.isPending ? (

@@ -6,6 +6,7 @@ import type { ExampleItem, ExampleStatus } from '@/entities/example/types'
 import { Button } from '@/shared/ui/Button'
 import { Input } from '@/shared/ui/Input'
 import { Label } from '@/shared/ui/Label'
+import { ValidationMessage } from '@/shared/ui/ValidationMessage'
 
 const statusOptions: { value: ExampleStatus; label: string }[] = [
   { value: 'draft', label: '초안' },
@@ -81,7 +82,7 @@ export function ExampleForm({
           placeholder="예: 신규 더빙 캠페인"
           {...register('name', { required: '이름을 입력하세요' })}
         />
-        {errors.name ? <p className="text-danger text-sm">{errors.name.message}</p> : null}
+        <ValidationMessage message={errors.name?.message} />
       </div>
       <div className="space-y-2">
         <Label htmlFor="example-form-owner">담당자</Label>
@@ -90,7 +91,7 @@ export function ExampleForm({
           placeholder="예: Amy"
           {...register('owner', { required: '담당자를 입력하세요' })}
         />
-        {errors.owner ? <p className="text-danger text-sm">{errors.owner.message}</p> : null}
+        <ValidationMessage message={errors.owner?.message} />
       </div>
       <div className="space-y-2">
         <Label htmlFor="example-form-status">상태</Label>

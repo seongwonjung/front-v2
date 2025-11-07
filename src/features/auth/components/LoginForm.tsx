@@ -9,6 +9,7 @@ import { trackEvent } from '../../../shared/lib/analytics'
 import { Button } from '../../../shared/ui/Button'
 import { Input } from '../../../shared/ui/Input'
 import { Label } from '../../../shared/ui/Label'
+import { ValidationMessage } from '../../../shared/ui/ValidationMessage'
 import { useLoginMutation } from '../hooks/useAuthMutations'
 
 const loginSchema = z.object({
@@ -47,12 +48,12 @@ export function LoginForm() {
       <div className="space-y-2">
         <Label htmlFor="email">이메일</Label>
         <Input id="email" type="email" placeholder="name@example.com" {...register('email')} />
-        {errors.email ? <p className="text-danger text-sm">{errors.email.message}</p> : null}
+        <ValidationMessage message={errors.email?.message} />
       </div>
       <div className="space-y-2">
         <Label htmlFor="password">비밀번호</Label>
         <Input id="password" type="password" placeholder="8자 이상" {...register('password')} />
-        {errors.password ? <p className="text-danger text-sm">{errors.password.message}</p> : null}
+        <ValidationMessage message={errors.password?.message} />
       </div>
       <div className="grid gap-3">
         <Button type="submit" disabled={loginMutation.isPending} className="w-full">

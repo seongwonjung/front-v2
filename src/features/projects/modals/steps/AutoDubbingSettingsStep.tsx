@@ -12,6 +12,7 @@ import { DialogDescription, DialogTitle } from '@/shared/ui/Dialog'
 import { Input } from '@/shared/ui/Input'
 import { Label } from '@/shared/ui/Label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/Select'
+import { ValidationMessage } from '@/shared/ui/ValidationMessage'
 
 import type { ProjectCreationDraft } from '../types'
 
@@ -51,7 +52,6 @@ export function AutoDubbingSettingsStep({
   })
 
   const {
-    control,
     handleSubmit,
     register,
     setValue,
@@ -60,7 +60,8 @@ export function AutoDubbingSettingsStep({
   } = form
 
   const detectAutomatically = watch('detectAutomatically')
-  const selectedTargets = watch('targetLanguages') ?? []
+  const watchedTargetLanguages = watch('targetLanguages')
+  const selectedTargets = useMemo(() => watchedTargetLanguages ?? [], [watchedTargetLanguages])
   const [pendingTarget, setPendingTarget] = useState<string>('')
 
   const availableTargetOptions = useMemo(
@@ -103,12 +104,14 @@ export function AutoDubbingSettingsStep({
 
       <div className="space-y-2">
         <Label htmlFor="episode-title">에피소드 제목</Label>
-        <Input
-          id="episode-title"
-          placeholder="예) iPad 출시 기념 라이브 방송"
-          {...register('title')}
-        />
-        {errors.title ? <p className="text-danger text-sm">{errors.title.message}</p> : null}
+        <div className="">
+          <Input
+            id="episode-title"
+            placeholder="예) iPad 출시 기념 라이브 방송"
+            {...register('title')}
+          />
+          <ValidationMessage message={errors.title?.message} />
+        </div>
       </div>
 
       <div className="space-y-2">
@@ -122,115 +125,115 @@ export function AutoDubbingSettingsStep({
           <span className="text-muted text-sm">원어 자동 인식 사용</span>
         </div>
         {!detectAutomatically ? (
-          <Select
-            value={watch('sourceLanguage')}
-            onValueChange={(value) => setValue('sourceLanguage', value, { shouldDirty: true })}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="원어를 선택하세요" />
-            </SelectTrigger>
-            <SelectContent>
-              {languages.map((language) => (
-                <SelectItem key={language} value={language}>
-                  {language}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        ) : null}
-        {errors.sourceLanguage ? (
-          <p className="text-danger text-sm">{errors.sourceLanguage.message}</p>
+          <div className="">
+            <Select
+              value={watch('sourceLanguage')}
+              onValueChange={(value) => setValue('sourceLanguage', value, { shouldDirty: true })}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="원어를 선택하세요" />
+              </SelectTrigger>
+              <SelectContent>
+                {languages.map((language) => (
+                  <SelectItem key={language} value={language}>
+                    {language}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <ValidationMessage message={errors.sourceLanguage?.message} />
+          </div>
         ) : null}
       </div>
       <div className="space-y-3">
         <Label>타겟 언어</Label>
-        <div className="border-surface-4 flex flex-col gap-3 rounded-2xl border border-dashed p-4">
-          <div className="flex flex-col gap-3 md:flex-row">
-            <div className="flex-1">
-              <Select value={pendingTarget} onValueChange={(value) => setPendingTarget(value)}>
-                <SelectTrigger>
-                  <SelectValue placeholder="추가할 언어를 선택하세요" />
-                </SelectTrigger>
-                <SelectContent>
-                  {availableTargetOptions.length === 0 ? (
-                    <SelectItem disabled value="__no-option">
-                      선택 가능한 언어가 없습니다
-                    </SelectItem>
-                  ) : (
-                    availableTargetOptions.map((language) => (
-                      <SelectItem key={language} value={language}>
-                        {language}
+        <div className="">
+          <div className="border-surface-4 flex flex-col gap-3 rounded-2xl border border-dashed p-4">
+            <div className="flex flex-col gap-3 md:flex-row">
+              <div className="flex-1">
+                <Select value={pendingTarget} onValueChange={(value) => setPendingTarget(value)}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="추가할 언어를 선택하세요" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {availableTargetOptions.length === 0 ? (
+                      <SelectItem disabled value="__no-option">
+                        선택 가능한 언어가 없습니다
                       </SelectItem>
-                    ))
-                  )}
-                </SelectContent>
-              </Select>
+                    ) : (
+                      availableTargetOptions.map((language) => (
+                        <SelectItem key={language} value={language}>
+                          {language}
+                        </SelectItem>
+                      ))
+                    )}
+                  </SelectContent>
+                </Select>
+              </div>
+              <Button
+                type="button"
+                variant="secondary"
+                className="md:w-40"
+                disabled={!pendingTarget}
+                onClick={() => {
+                  if (!pendingTarget) return
+                  setValue('targetLanguages', [...selectedTargets, pendingTarget], {
+                    shouldDirty: true,
+                    shouldValidate: true,
+                  })
+                  setPendingTarget('')
+                }}
+              >
+                <PlusCircle className="h-4 w-4" />
+                언어 추가
+              </Button>
             </div>
-            <Button
-              type="button"
-              variant="secondary"
-              className="md:w-40"
-              disabled={!pendingTarget}
-              onClick={() => {
-                if (!pendingTarget) return
-                setValue('targetLanguages', [...selectedTargets, pendingTarget], {
-                  shouldDirty: true,
-                  shouldValidate: true,
-                })
-                setPendingTarget('')
-              }}
-            >
-              <PlusCircle className="h-4 w-4" />
-              언어 추가
-            </Button>
-          </div>
-          <div className="flex flex-wrap gap-2">
-            {selectedTargets.length === 0 ? (
-              <p className="text-muted text-sm">추가된 타겟 언어가 없습니다.</p>
-            ) : (
-              selectedTargets.map((language) => (
-                <span
-                  key={language}
-                  className="bg-surface-1 text-foreground border-surface-4 inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm"
-                >
-                  {language}
-                  <button
-                    type="button"
-                    className="text-muted hover:text-danger transition"
-                    aria-label={`${language} 제거`}
-                    onClick={() => {
-                      setValue(
-                        'targetLanguages',
-                        selectedTargets.filter((item) => item !== language),
-                        { shouldDirty: true, shouldValidate: true },
-                      )
-                    }}
+            <div className="flex flex-wrap gap-2">
+              {selectedTargets.length === 0 ? (
+                <p className="text-muted text-sm">추가된 타겟 언어가 없습니다.</p>
+              ) : (
+                selectedTargets.map((language) => (
+                  <span
+                    key={language}
+                    className="bg-surface-1 text-foreground border-surface-4 inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm"
                   >
-                    <X className="h-3 w-3" />
-                  </button>
-                </span>
-              ))
-            )}
+                    {language}
+                    <button
+                      type="button"
+                      className="text-muted hover:text-danger transition"
+                      aria-label={`${language} 제거`}
+                      onClick={() => {
+                        setValue(
+                          'targetLanguages',
+                          selectedTargets.filter((item) => item !== language),
+                          { shouldDirty: true, shouldValidate: true },
+                        )
+                      }}
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
+                  </span>
+                ))
+              )}
+            </div>
           </div>
+          <ValidationMessage message={errors.targetLanguages?.message} />
         </div>
-        {errors.targetLanguages ? (
-          <p className="text-danger text-sm">{errors.targetLanguages.message}</p>
-        ) : null}
       </div>
 
       <div className="space-y-2">
         <Label htmlFor="speakerCount">화자 수</Label>
-        <Input
-          id="speakerCount"
-          type="number"
-          min={1}
-          max={10}
-          {...register('speakerCount', { valueAsNumber: true })}
-        />
+        <div className="">
+          <Input
+            id="speakerCount"
+            type="number"
+            min={1}
+            max={10}
+            {...register('speakerCount', { valueAsNumber: true })}
+          />
+          <ValidationMessage message={errors.speakerCount?.message} />
+        </div>
         <p className="text-muted text-xs">권장: 1~5명, 최대 10명까지 설정할 수 있습니다.</p>
-        {errors.speakerCount ? (
-          <p className="text-danger text-sm">{errors.speakerCount.message}</p>
-        ) : null}
       </div>
 
       <SettingsSummary

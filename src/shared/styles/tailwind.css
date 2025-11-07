@@ -145,8 +145,14 @@
   .bg-danger {
     background-color: hsl(var(--danger));
   }
+  .bg-danger\/10 {
+    background-color: hsla(var(--danger), 0.1);
+  }
   .bg-danger\/90 {
     background-color: hsla(var(--danger), 0.9);
+  }
+  .text-danger {
+    color: hsl(var(--danger));
   }
   .text-danger-foreground {
     color: hsl(var(--danger-foreground));
