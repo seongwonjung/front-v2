@@ -74,23 +74,7 @@ export function SourceSelectionStep({
       <DialogDescription>
         YouTube 링크를 불러오거나, 로컬에서 원본 영상을 업로드해 AI 더빙을 생성합니다
       </DialogDescription>
-      {/* 
-      <div className="bg-surface-2 flex items-center gap-3 rounded-2xl p-1">
-        {(['youtube', 'file'] as const).map((option) => (
-          <button
-            key={option}
-            type="button"
-            onClick={() => setMode(option)}
-            className={`flex-1 rounded-2xl px-4 py-3 text-sm font-semibold transition ${
-              mode === option ? 'bg-surface-1 text-foreground shadow-soft' : 'text-muted'
-            }`}
-          >
-            {option === 'youtube' ? 'YouTube 링크' : '파일 업로드'}
-          </button>
-        ))}
-      </div> */}
 
-      {/* {mode === 'youtube' ? ( */}
       <div className="space-y-1">
         <Label htmlFor="youtube-url">YouTube 링크</Label>
         <div className="border-surface-4 bg-surface-1 flex items-center gap-3 rounded-2xl border px-4">
@@ -136,7 +120,6 @@ export function SourceSelectionStep({
         ) : null}
         <ValidationMessage message={fileError ?? undefined} />
       </div>
-      {/* )} */}
 
       <div className="flex justify-end gap-3 pt-4">
         <Button variant="ghost" type="button" onClick={onCancel}>

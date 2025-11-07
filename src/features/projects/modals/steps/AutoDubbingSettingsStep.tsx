@@ -1,20 +1,19 @@
 import { useEffect, useMemo, useState } from 'react'
 
 import { zodResolver } from '@hookform/resolvers/zod'
-import { PlusCircle, X } from 'lucide-react'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 
 import { trackEvent } from '@/shared/lib/analytics'
 import { Button } from '@/shared/ui/Button'
-import { Checkbox } from '@/shared/ui/Checkbox'
 import { DialogDescription, DialogTitle } from '@/shared/ui/Dialog'
-import { Input } from '@/shared/ui/Input'
-import { Label } from '@/shared/ui/Label'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/Select'
-import { ValidationMessage } from '@/shared/ui/ValidationMessage'
 
 import type { ProjectCreationDraft } from '../types'
+
+import { SourceLanguageField } from './components/auto-dubbing/SourceLanguageField'
+import { AudioSpeakerCountField } from './components/auto-dubbing/SpeakerCountField'
+import { TargetLanguagesField } from './components/auto-dubbing/TargetLanguagesField'
+import { TitleField } from './components/auto-dubbing/TitleField'
 
 const languages = ['한국어', '영어', '일본어', '스페인어', '프랑스어']
 
@@ -60,6 +59,8 @@ export function AutoDubbingSettingsStep({
   } = form
 
   const detectAutomatically = watch('detectAutomatically')
+  const sourceLanguage = watch('sourceLanguage')
+  const speakerCount = watch('speakerCount')
   const watchedTargetLanguages = watch('targetLanguages')
   const selectedTargets = useMemo(() => watchedTargetLanguages ?? [], [watchedTargetLanguages])
   const [pendingTarget, setPendingTarget] = useState<string>('')
@@ -89,6 +90,31 @@ export function AutoDubbingSettingsStep({
     onSubmit(values)
   })
 
+  const handleDetectChange = (checked: boolean) => {
+    setValue('detectAutomatically', checked, { shouldDirty: true })
+  }
+
+  const handleSourceLanguageChange = (value: string) => {
+    setValue('sourceLanguage', value, { shouldDirty: true })
+  }
+
+  const handleAddTarget = () => {
+    if (!pendingTarget) return
+    setValue('targetLanguages', [...selectedTargets, pendingTarget], {
+      shouldDirty: true,
+      shouldValidate: true,
+    })
+    setPendingTarget('')
+  }
+
+  const handleRemoveTarget = (language: string) => {
+    setValue(
+      'targetLanguages',
+      selectedTargets.filter((item) => item !== language),
+      { shouldDirty: true, shouldValidate: true },
+    )
+  }
+
   return (
     <form
       onSubmit={(event) => {
@@ -102,146 +128,38 @@ export function AutoDubbingSettingsStep({
         확인하세요.
       </DialogDescription>
 
-      <div className="space-y-2">
-        <Label htmlFor="episode-title">에피소드 제목</Label>
-        <div className="">
-          <Input
-            id="episode-title"
-            placeholder="예) iPad 출시 기념 라이브 방송"
-            {...register('title')}
-          />
-          <ValidationMessage message={errors.title?.message} />
-        </div>
-      </div>
+      <TitleField registration={register('title')} error={errors.title?.message} />
 
-      <div className="space-y-2">
-        <div className="flex items-center gap-3">
-          <Checkbox
-            checked={detectAutomatically}
-            onCheckedChange={(checked) =>
-              setValue('detectAutomatically', Boolean(checked), { shouldDirty: true })
-            }
-          />
-          <span className="text-muted text-sm">원어 자동 인식 사용</span>
-        </div>
-        {!detectAutomatically ? (
-          <div className="">
-            <Select
-              value={watch('sourceLanguage')}
-              onValueChange={(value) => setValue('sourceLanguage', value, { shouldDirty: true })}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="원어를 선택하세요" />
-              </SelectTrigger>
-              <SelectContent>
-                {languages.map((language) => (
-                  <SelectItem key={language} value={language}>
-                    {language}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <ValidationMessage message={errors.sourceLanguage?.message} />
-          </div>
-        ) : null}
-      </div>
-      <div className="space-y-3">
-        <Label>타겟 언어</Label>
-        <div className="">
-          <div className="border-surface-4 flex flex-col gap-3 rounded-2xl border border-dashed p-4">
-            <div className="flex flex-col gap-3 md:flex-row">
-              <div className="flex-1">
-                <Select value={pendingTarget} onValueChange={(value) => setPendingTarget(value)}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="추가할 언어를 선택하세요" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {availableTargetOptions.length === 0 ? (
-                      <SelectItem disabled value="__no-option">
-                        선택 가능한 언어가 없습니다
-                      </SelectItem>
-                    ) : (
-                      availableTargetOptions.map((language) => (
-                        <SelectItem key={language} value={language}>
-                          {language}
-                        </SelectItem>
-                      ))
-                    )}
-                  </SelectContent>
-                </Select>
-              </div>
-              <Button
-                type="button"
-                variant="secondary"
-                className="md:w-40"
-                disabled={!pendingTarget}
-                onClick={() => {
-                  if (!pendingTarget) return
-                  setValue('targetLanguages', [...selectedTargets, pendingTarget], {
-                    shouldDirty: true,
-                    shouldValidate: true,
-                  })
-                  setPendingTarget('')
-                }}
-              >
-                <PlusCircle className="h-4 w-4" />
-                언어 추가
-              </Button>
-            </div>
-            <div className="flex flex-wrap gap-2">
-              {selectedTargets.length === 0 ? (
-                <p className="text-muted text-sm">추가된 타겟 언어가 없습니다.</p>
-              ) : (
-                selectedTargets.map((language) => (
-                  <span
-                    key={language}
-                    className="bg-surface-1 text-foreground border-surface-4 inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm"
-                  >
-                    {language}
-                    <button
-                      type="button"
-                      className="text-muted hover:text-danger transition"
-                      aria-label={`${language} 제거`}
-                      onClick={() => {
-                        setValue(
-                          'targetLanguages',
-                          selectedTargets.filter((item) => item !== language),
-                          { shouldDirty: true, shouldValidate: true },
-                        )
-                      }}
-                    >
-                      <X className="h-3 w-3" />
-                    </button>
-                  </span>
-                ))
-              )}
-            </div>
-          </div>
-          <ValidationMessage message={errors.targetLanguages?.message} />
-        </div>
-      </div>
+      <SourceLanguageField
+        detectAutomatically={detectAutomatically}
+        onDetectChange={handleDetectChange}
+        languages={languages}
+        sourceLanguage={sourceLanguage}
+        onSourceLanguageChange={handleSourceLanguageChange}
+        error={errors.sourceLanguage?.message}
+      />
 
-      <div className="space-y-2">
-        <Label htmlFor="speakerCount">화자 수</Label>
-        <div className="">
-          <Input
-            id="speakerCount"
-            type="number"
-            min={1}
-            max={10}
-            {...register('speakerCount', { valueAsNumber: true })}
-          />
-          <ValidationMessage message={errors.speakerCount?.message} />
-        </div>
-        <p className="text-muted text-xs">권장: 1~5명, 최대 10명까지 설정할 수 있습니다.</p>
-      </div>
+      <TargetLanguagesField
+        selectedTargets={selectedTargets}
+        availableOptions={availableTargetOptions}
+        pendingTarget={pendingTarget}
+        onPendingChange={setPendingTarget}
+        onAddTarget={handleAddTarget}
+        onRemoveTarget={handleRemoveTarget}
+        error={errors.targetLanguages?.message}
+      />
+
+      <AudioSpeakerCountField
+        registration={register('speakerCount', { valueAsNumber: true })}
+        error={errors.speakerCount?.message}
+      />
 
       <SettingsSummary
         title={watch('title')}
         draft={draft}
-        sourceLanguage={detectAutomatically ? '자동 인식' : watch('sourceLanguage')}
+        sourceLanguage={detectAutomatically ? '자동 인식' : sourceLanguage}
         targetLanguages={selectedTargets}
-        speakerCount={watch('speakerCount')}
+        speakerCount={speakerCount}
       />
 
       <div className="flex justify-between gap-3 pt-4">
